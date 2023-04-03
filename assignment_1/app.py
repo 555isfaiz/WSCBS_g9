@@ -1,5 +1,6 @@
 from flask import Flask, request, Response
 import json
+import random
 
 app = Flask(__name__)
 mapping = {}
@@ -14,6 +15,8 @@ def get_by_id(id):
 
 @app.route('/<id>', methods = ["PUT"])
 def put_by_id(id):
+    mapping[id] = random.randint(0, 100)
+    print(mapping)
     return "What should I do here..."
 
 @app.route('/<id>', methods = ["DELETE"])
@@ -29,9 +32,9 @@ def get_all_keys():
     return json.dumps(list(mapping.keys()))
 
 @app.route('/', methods = ["POST"])
-def post_url():
+def post_url(url):
     global counter
-    if "url" not in request.args:
+    if url not in request.args:
         return "Wrong args", 400
     
     url = request.args.get("url")
