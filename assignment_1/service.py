@@ -1,9 +1,10 @@
 from url import value_gen
-from app import *
+import requests
 
 def test_api():
-    url = value_gen()
-    post_url(url)
-    return ("service succesfully tested")
+    unqiue_val = value_gen()
+    url = "http://127.0.0.1:5000/"
+    r = requests.post(url, json={'url': unqiue_val})
+    print(r.text)
 
 test_api()

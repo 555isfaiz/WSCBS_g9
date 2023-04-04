@@ -1,4 +1,4 @@
-from flask import Flask, request, Response
+from flask import Flask, request
 import json
 import random
 
@@ -32,12 +32,13 @@ def get_all_keys():
     return json.dumps(list(mapping.keys()))
 
 @app.route('/', methods = ["POST"])
-def post_url(url):
+def post_url():
     global counter
-    if url not in request.args:
-        return "Wrong args", 400
-    
-    url = request.args.get("url")
+    # if not request.args:
+    #     return "Wrong args", 400
+    url = request.json()
+    mapping["url"] = url["url"]
+    print(url)
 
     # validate the url...
 
