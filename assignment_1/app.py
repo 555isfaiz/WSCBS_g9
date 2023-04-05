@@ -1,31 +1,32 @@
-from flask import Flask, request, Request, Response
+from flask import Flask, request, Request
 import json
-import random
 from atomic_int import AtomicInt
+from url_check import URLValidator
 import sys
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from flask_mysqldb import MySQL
+# from flask_mysqldb import MySQL
 
 atomic = AtomicInt()
 app = Flask(__name__)
+check = URLValidator()
 mapping = {}
 
-db = SQLAlchemy()
-ma = Marshmallow()
-mysql = MySQL(app)
+# db = SQLAlchemy()
+# ma = Marshmallow()
+# mysql = MySQL(app)
 
-class Website(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    url = db.Column(db.String(128), nullable = False)
-    def __int__(self, id, url):
-        self.id = id
-        self.url = url
+# class Website(db.Model):
+#     id = db.Column(db.Integer, primary_key = True)
+#     url = db.Column(db.String(128), nullable = False)
+#     def __int__(self, id, url):
+#         self.id = id
+#         self.url = url
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
-db.init_app(app)
-with app.app_context():
-    db.create_all()
+# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+# db.init_app(app)
+# with app.app_context():
+#     db.create_all()
 
 def check_id(id:str):
     if not id.isnumeric():
@@ -43,7 +44,9 @@ def retrieve_url(request:Request):
         return "Wrong args", 400
     url = body["url"]
 
-    # validate the url...
+    msg, code = check(url)
+    if code != 200:
+        return msg, code
 
     return url, 200
 
