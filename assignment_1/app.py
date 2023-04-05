@@ -1,4 +1,4 @@
-from flask import Flask, request, Request
+from flask import Flask, request, Request, Response
 import json
 import random
 from atomic_int import AtomicInt
@@ -54,8 +54,10 @@ def get_by_id(id:str):
         return val, code
 
     id = int(id)
-    # TODO change response header here
-    return json.dumps({"Location": "{0}".format(mapping[id])}), 301
+    res = app.make_response("")
+    res.headers["Location"] = mapping[id]
+    res.status_code = 301
+    return res
 
 @app.route('/<id>', methods = ["PUT"])
 def put_by_id(id:str):
