@@ -3,11 +3,29 @@ import json
 import random
 from atomic_int import AtomicInt
 import sys
+from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
+from flask_mysqldb import MySQL
 
-use_db = False
 atomic = AtomicInt()
 app = Flask(__name__)
 mapping = {}
+
+db = SQLAlchemy()
+ma = Marshmallow()
+mysql = MySQL(app)
+
+class Website(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    url = db.Column(db.String(128), nullable = False)
+    def __int__(self, id, url):
+        self.id = id
+        self.url = url
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 def check_id(id:str):
     if not id.isnumeric():
