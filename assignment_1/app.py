@@ -1,32 +1,39 @@
-from flask import Flask, request, Request
+from flask import Flask, request, Request, jsonify
 import json
 from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-# from flask_mysqldb import MySQL
+from flask_mysqldb import MySQL
 
 atomic = AtomicInt()
 app = Flask(__name__)
 check = URLValidator()
 mapping = {}
 
-# db = SQLAlchemy()
-# ma = Marshmallow()
-# mysql = MySQL(app)
+db = SQLAlchemy()
+ma = Marshmallow()
+mysql = MySQL(app)
 
-# class Website(db.Model):
-#     id = db.Column(db.Integer, primary_key = True)
-#     url = db.Column(db.String(128), nullable = False)
-#     def __int__(self, id, url):
-#         self.id = id
-#         self.url = url
+class Website(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(128), nullable=False)
+    def __int__(self, id, url):
+        self.id = id
+        self.url = url
 
-# app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
-# db.init_app(app)
-# with app.app_context():
-#     db.create_all()
+class WebsiteSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "url")
+
+website_schema = WebsiteSchema()
+websites_schema = WebsiteSchema(many=True)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 def check_id(id:str):
     if not id.isnumeric():
@@ -74,6 +81,10 @@ def put_by_id(id:str):
 
     id = int(id)
     mapping[id] = val
+
+    website = Website.query.get(id)
+    website.url = val
+    db.session.commit()
     return "Success", 200
 
 @app.route('/<id>', methods = ["DELETE"])
@@ -84,6 +95,10 @@ def del_by_id(id:str):
 
     id = int(id)
     mapping.pop(id)
+
+    website = Website.query.get(id)
+    db.session.delete(website)
+    db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["GET"])
@@ -92,11 +107,18 @@ def get_all_keys():
 
 @app.route('/all', methods = ["GET"])
 def get_all_mapping():
-    return json.dumps(mapping)
+    data = Website.query.all()
+    websites = websites_schema.dump(data)
+    return jsonify(websites)
+    # return json.dumps(mapping)
 
 @app.route('/all', methods = ["DELETE"])
 def del_all_mapping():
     mapping.clear()
+
+    website = Website.query.all()
+    db.session.delete(website)
+    db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["POST"])
@@ -108,6 +130,9 @@ def post_url():
     id = atomic.get_and_inc()
     mapping[id] = val
 
+    new_website = Website(id, val)
+    db.session.add(new_website)
+    db.commit()
     return str(id), 201
 
 @app.route('/', methods = ["DELETE"])
