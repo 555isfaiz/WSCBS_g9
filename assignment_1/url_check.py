@@ -1,3 +1,4 @@
+# This code has been referenced from https://github.com/django/django/blob/fdf0a367bdd72c70f91fb3aed77dabbe9dcef69f/django/core/validators.py#L69
 import re
 import ipaddress
 from urllib.parse import urlsplit
