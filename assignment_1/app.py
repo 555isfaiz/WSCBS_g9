@@ -40,8 +40,8 @@ def check_id(id:str):
         return "Id should be numeric", 400
 
     id = int(id)
-    # if id not in mapping:
-    #     return "Not a valid id", 404
+    if id not in mapping:
+        return "Not a valid id", 404
 
     return "OK", 200
 
