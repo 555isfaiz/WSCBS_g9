@@ -58,6 +58,7 @@ def load_from_mysql():
         for o in website:
             mapping[o.id] = o.url
             gid = max(gid, o.id)
+        atomic.val = gid + 1
 
 @app.route('/<id>', methods = ["GET"])
 def get_by_id(id:str):
@@ -145,8 +146,7 @@ def post_url():
     if code != 200:
         return val, code
 
-    # gid = atomic.get_and_inc()
-    gid += 1
+    gid = atomic.get_and_inc()
     mapping[gid] = val
 
     if use_db:
