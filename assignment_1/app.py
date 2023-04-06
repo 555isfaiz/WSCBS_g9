@@ -69,6 +69,17 @@ def get_by_id(id:str):
     res.status_code = 301
     return res
 
+@app.route('/contains/<id>', methods = ["GET"])
+def contains_id(id:str):
+    if not id.isnumeric():
+        return "Id should be numeric", 400
+
+    id = int(id)
+    if id not in mapping:
+        return "", 404
+    else:
+        return "", 200
+
 @app.route('/<id>', methods = ["PUT"])
 def put_by_id(id:str):
     val, code = check_id(id)
