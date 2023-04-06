@@ -4,16 +4,16 @@ from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
 from flask_mysqldb import MySQL
 
 atomic = AtomicInt()
 app = Flask(__name__)
 check = URLValidator()
 mapping = {}
+gid = 0
 
+use_db = False
 db = SQLAlchemy()
-ma = Marshmallow()
 mysql = MySQL(app)
 
 class Website(db.Model):
@@ -22,13 +22,6 @@ class Website(db.Model):
     def __int__(self, id, url):
         self.id = id
         self.url = url
-
-class WebsiteSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "url")
-
-website_schema = WebsiteSchema()
-websites_schema = WebsiteSchema(many=True)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
 db.init_app(app)
@@ -56,6 +49,15 @@ def retrieve_url(request:Request):
         return msg, code
 
     return url, 200
+
+@app.before_first_request
+def load_from_mysql():
+    global gid
+    if use_db:
+        website = Website.query.all()
+        for o in website:
+            mapping[o.id] = o.url
+            gid = max(gid, o.id)
 
 @app.route('/<id>', methods = ["GET"])
 def get_by_id(id:str):
@@ -93,9 +95,10 @@ def put_by_id(id:str):
     id = int(id)
     mapping[id] = val
 
-    website = Website.query.get(id)
-    website.url = val
-    db.session.commit()
+    if use_db:
+        website = Website.query.get(id)
+        website.url = val
+        db.session.commit()
     return "Success", 200
 
 @app.route('/<id>', methods = ["DELETE"])
@@ -107,9 +110,10 @@ def del_by_id(id:str):
     id = int(id)
     mapping.pop(id)
 
-    website = Website.query.get(id)
-    db.session.delete(website)
-    db.session.commit()
+    if use_db:
+        website = Website.query.get(id)
+        db.session.delete(website)
+        db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["GET"])
@@ -127,25 +131,29 @@ def get_all_mapping():
 def del_all_mapping():
     mapping.clear()
 
-    website = Website.query.all()
-    for o in website:
-        db.session.delete(o)
-    db.session.commit()
+    if use_db:
+        website = Website.query.all()
+        for o in website:
+            db.session.delete(o)
+        db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["POST"])
 def post_url():
+    global gid
     val, code = retrieve_url(request)
     if code != 200:
         return val, code
 
-    id = atomic.get_and_inc()
-    mapping[id] = val
+    # gid = atomic.get_and_inc()
+    gid += 1
+    mapping[gid] = val
 
-    new_website = Website(id=id, url=val)
-    db.session.add(new_website)
-    db.session.commit()
-    return str(id), 201
+    if use_db:
+        new_website = Website(id=gid, url=val)
+        db.session.add(new_website)
+        db.session.commit()
+    return str(gid), 201
 
 @app.route('/', methods = ["DELETE"])
 def delete():
