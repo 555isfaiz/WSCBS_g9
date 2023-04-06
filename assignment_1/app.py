@@ -40,8 +40,8 @@ def check_id(id:str):
         return "Id should be numeric", 400
 
     id = int(id)
-    if id not in mapping:
-        return "Not a valid id", 404
+    # if id not in mapping:
+    #     return "Not a valid id", 404
 
     return "OK", 200
 
@@ -107,17 +107,18 @@ def get_all_keys():
 
 @app.route('/all', methods = ["GET"])
 def get_all_mapping():
-    data = Website.query.all()
-    websites = websites_schema.dump(data)
-    return jsonify(websites)
-    # return json.dumps(mapping)
+    # data = Website.query.all()
+    # websites = websites_schema.dump(data)
+    # return jsonify(websites)
+    return json.dumps(mapping)
 
 @app.route('/all', methods = ["DELETE"])
 def del_all_mapping():
     mapping.clear()
 
     website = Website.query.all()
-    db.session.delete(website)
+    for o in website:
+        db.session.delete(o)
     db.session.commit()
     return "", 204
 
@@ -130,9 +131,9 @@ def post_url():
     id = atomic.get_and_inc()
     mapping[id] = val
 
-    new_website = Website(id, val)
+    new_website = Website(id=id, url=val)
     db.session.add(new_website)
-    db.commit()
+    db.session.commit()
     return str(id), 201
 
 @app.route('/', methods = ["DELETE"])
