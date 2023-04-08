@@ -1,4 +1,4 @@
-from flask import Flask, request, Request, jsonify
+from flask import Flask, request, Request
 import json
 from atomic_int import AtomicInt
 from url_check import URLValidator
