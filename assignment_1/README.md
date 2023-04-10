@@ -10,6 +10,8 @@ pip3 install -r requirements.txt
 python3 app.py
 ```
 Run with DB:
+## users can change the mysql information in app.py (line 32)
+## app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://{username}:{password}@localhost/{database}"
 ```{shell}
 python3 app.py --db
 ```
