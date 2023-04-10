@@ -3,8 +3,7 @@ import json
 from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
-from flask_sqlalchemy import SQLAlchemy
-from flask_mysqldb import MySQL
+
 
 atomic = AtomicInt()
 app = Flask(__name__)
@@ -13,20 +12,31 @@ mapping = {}
 gid = 0
 
 use_db = False
-db = SQLAlchemy()
-mysql = MySQL(app)
 
-class Website(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    url = db.Column(db.String(128), nullable=False)
-    def __int__(self, id, url):
-        self.id = id
-        self.url = url
+try:
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_mysqldb import MySQL
+    db = SQLAlchemy()
+    mysql = MySQL(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
-db.init_app(app)
-with app.app_context():
-    db.create_all()
+
+    class Website(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        url = db.Column(db.String(128), nullable=False)
+
+        def __int__(self, id, url):
+            self.id = id
+            self.url = url
+
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+    db.init_app(app)
+    with app.app_context():
+        db.create_all()
+except Exception as e:
+    print(e)
+    print("Run without DB.")
+
 
 def check_id(id:str):
     if not id.isnumeric():
