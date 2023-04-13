@@ -29,7 +29,7 @@ try:
             self.url = url
 
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/Website"
     db.init_app(app)
     with app.app_context():
         db.create_all()
