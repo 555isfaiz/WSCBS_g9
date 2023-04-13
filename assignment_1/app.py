@@ -161,7 +161,10 @@ def post_url():
         new_website = Website(id=gid, url=val)
         db.session.add(new_website)
         db.session.commit()
-    return str(gid), 201
+    res = app.make_response(json.dumps({'id':gid}))
+    res.headers["Content-Type"] = "application/json"
+    res.status_code = 201
+    return res
 
 @app.route('/', methods = ["DELETE"])
 def delete():
