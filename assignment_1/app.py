@@ -19,7 +19,6 @@ try:
     db = SQLAlchemy()
     mysql = MySQL(app)
 
-
     class Website(db.Model):
         id = db.Column(db.Integer, primary_key=True)
         url = db.Column(db.String(128), nullable=False)
@@ -36,7 +35,6 @@ try:
 except Exception as e:
     print(e)
     print("Run without DB.")
-
 
 def check_id(id:str):
     if not id.isnumeric():
