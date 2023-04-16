@@ -65,9 +65,11 @@ def retrieve_url(request:Request):
     return url, 200
 
 def authenticate(request:Request):
-    token = request.headers.get('Authorization')
-    if not token:
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
         return False
+    token = auth_header.split(' ')[1]
+    print(token)
     try:
         decoded_token = base64.b64decode(token.encode())
         message, signature = decoded_token[:-32], decoded_token[-32:]
@@ -147,6 +149,8 @@ def del_by_id(id:str):
 
 @app.route('/', methods = ["GET"])
 def get_all_keys():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     return json.dumps(list(mapping.keys()))
 
 @app.route('/all', methods = ["GET"])
