@@ -1,14 +1,13 @@
-from flask import Flask, Blueprint, request, Request
+from flask import Flask, Blueprint, request, Request, jsonify
 import json
 from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
-from auth import auth_bp
-
+from auth import authenticate
 
 atomic = AtomicInt()
 app = Flask(__name__)
-app.register_blueprint(auth_bp)
+# app.register_blueprint(auth_bp)
 check = URLValidator()
 mapping = {}
 gid = 0
@@ -30,7 +29,7 @@ try:
             self.url = url
 
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/Website"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
     db.init_app(app)
     with app.app_context():
         db.create_all()
@@ -95,6 +94,8 @@ def contains_id(id:str):
 
 @app.route('/<id>', methods = ["PUT"])
 def put_by_id(id:str):
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     val, code = check_id(id)
     if code != 200:
         return val, code
@@ -114,6 +115,8 @@ def put_by_id(id:str):
 
 @app.route('/<id>', methods = ["DELETE"])
 def del_by_id(id:str):
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     val, code = check_id(id)
     if code != 200:
         return val, code
@@ -129,10 +132,14 @@ def del_by_id(id:str):
 
 @app.route('/', methods = ["GET"])
 def get_all_keys():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     return json.dumps(list(mapping.keys()))
 
 @app.route('/all', methods = ["GET"])
 def get_all_mapping():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     # data = Website.query.all()
     # websites = websites_schema.dump(data)
     # return jsonify(websites)
@@ -140,6 +147,9 @@ def get_all_mapping():
 
 @app.route('/all', methods = ["DELETE"])
 def del_all_mapping():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
+
     mapping.clear()
 
     if use_db:
@@ -151,6 +161,8 @@ def del_all_mapping():
 
 @app.route('/', methods = ["POST"])
 def post_url():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     global gid
     val, code = retrieve_url(request)
     if code != 200:
