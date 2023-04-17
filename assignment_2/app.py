@@ -1,5 +1,9 @@
-from flask import Flask, request, Request
+from flask import Flask, request, Request, jsonify
 import json
+import hashlib
+import hmac
+import base64
+import time
 from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
@@ -7,8 +11,10 @@ import sys
 
 atomic = AtomicInt()
 app = Flask(__name__)
+app.config["SECRET_KEY"] = "123456"
 check = URLValidator()
 mapping = {}
+users = {}
 gid = 0
 
 use_db = False
@@ -57,6 +63,22 @@ def retrieve_url(request:Request):
         return msg, code
 
     return url, 200
+
+def authenticate(request:Request):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return False
+    token = auth_header.split(' ')[1]
+    print(token)
+    try:
+        decoded_token = base64.b64decode(token.encode())
+        message, signature = decoded_token[:-32], decoded_token[-32:]
+        expected_signature = hmac.new(app.config['SECRET_KEY'].encode(), message, hashlib.sha256).digest()
+        if hmac.compare_digest(signature, expected_signature):
+            return True
+        return False
+    except:
+        return False
 
 @app.before_first_request
 def load_from_mysql():
@@ -127,6 +149,8 @@ def del_by_id(id:str):
 
 @app.route('/', methods = ["GET"])
 def get_all_keys():
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
     return json.dumps(list(mapping.keys()))
 
 @app.route('/all', methods = ["GET"])
@@ -169,6 +193,45 @@ def post_url():
 @app.route('/', methods = ["DELETE"])
 def delete():
     return "Not Found", 404
+
+@app.route('/users', methods=["POST"])
+def register():
+    username = request.json.get("username")
+    password = request.json.get("password")
+
+    if username not in users:
+        users[username] = password
+        return jsonify({"Message": "success"}), 201
+    else:
+        return jsonify({"Message": "duplicate"}), 409
+
+@app.route('/users', methods=["PUT"])
+def change_password():
+    username = request.json.get("username")
+    old_password = request.json.get("old_password")
+    new_password = request.json.get("new_password")
+
+    if old_password == users[username]:
+        users[username] = new_password
+        return jsonify({"Message": "success"}), 200
+    else:
+        return jsonify({"Message": "forbidden"}), 403
+
+@app.route('/users/login', methods=["POST"])
+def login():
+    username = request.json.get("username")
+    password = request.json.get("password")
+
+    if username in users and users[username] == password:
+        # Generate authentication token
+        timestamp = str(int(time.time()))
+        message = username + ':' + timestamp
+        signature = hmac.new(app.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256).digest()
+        token = base64.b64encode(message.encode() + signature).decode("utf-8")
+        return jsonify({"JWT": token}), 200
+    else:
+        return jsonify({"Message": "forbidden"}), 403
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == '--db':
