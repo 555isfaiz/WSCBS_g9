@@ -36,20 +36,23 @@ except Exception as e:
     print(e)
     print("Run without DB.")
 
-def authenticate(request:Request):
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return False
-    token = auth_header.split(' ')[1]
+@auth.route('/authenticate', methods=["POST"])
+def authenticate():
+    # auth_header = request.headers.get('Authorization')
+    # if not auth_header:
+    #     return False
+    # token = auth_header.split(' ')[1]
+    token = request.json.get("JWT")
     try:
         decoded_token = base64.b64decode(token.encode())
         message, signature = decoded_token[:-32], decoded_token[-32:]
+        username = message.decode("utf-8").split(':')[0]
         expected_signature = hmac.new(auth.config["SECRET_KEY"].encode(), message, hashlib.sha256).digest()
         if hmac.compare_digest(signature, expected_signature):
-            return True
-        return False
+            return jsonify({"Username": username}), 201
+        return jsonify({"Message": "forbidden"}), 403
     except:
-        return False
+        return jsonify({"Message": "forbidden"}), 403
 
 @auth.before_first_request
 def load_from_mysql():
@@ -63,8 +66,8 @@ def register():
     password = request.json.get("password")
 
     if username not in users:
-        users[username] = password
         hash_password = generate_password_hash(password=password)
+        users[username] = hash_password
         new_user = User(username=username, password=hash_password)
         db.session.add(new_user)
         db.session.commit()
