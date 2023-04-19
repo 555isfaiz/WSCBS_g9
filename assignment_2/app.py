@@ -3,14 +3,15 @@ import json
 from atomic_int import AtomicInt
 from url_check import URLValidator
 import sys
-from auth import authenticate
+import requests
+import hashlib
 
 atomic = AtomicInt()
 app = Flask(__name__)
 # app.register_blueprint(auth_bp)
 check = URLValidator()
 mapping = {}
-gid = 0
+auth_url = ""
 
 use_db = False
 
@@ -39,18 +40,18 @@ except Exception as e:
 
 def check_id(id:str):
     if not id.isnumeric():
-        return "Id should be numeric", 400
+        return jsonify({"Message": "Id should be numeric"}), 400
 
     id = int(id)
     if id not in mapping:
-        return "Not a valid id", 404
+        return jsonify({"Message": "Not a valid id"}), 404
 
-    return "OK", 200
+    return jsonify({"Message": "OK"}), 200
 
 def retrieve_url(request:Request):
     body = request.get_json()
     if "url" not in body:
-        return "Wrong args", 400
+        return jsonify({"Message": "Wrong args"}), 400
     url = body["url"]
 
     msg, code = check(url)
@@ -58,6 +59,10 @@ def retrieve_url(request:Request):
         return msg, code
 
     return url, 200
+
+def authenticate(request) -> bool:
+    r = requests.post(auth_url, json={"JWT":request.headers.get('Authorization')})
+    return r.status_code == 201
 
 @app.before_first_request
 def load_from_mysql():
@@ -84,7 +89,7 @@ def get_by_id(id:str):
 @app.route('/contains/<id>', methods = ["GET"])
 def contains_id(id:str):
     if not id.isnumeric():
-        return "Id should be numeric", 400
+        return jsonify({"Message": "Id should be numeric"}), 400
 
     id = int(id)
     if id not in mapping:
@@ -111,7 +116,7 @@ def put_by_id(id:str):
         website = Website.query.get(id)
         website.url = val
         db.session.commit()
-    return "Success", 200
+    return jsonify({"Message": "Success"}), 200
 
 @app.route('/<id>', methods = ["DELETE"])
 def del_by_id(id:str):
@@ -140,9 +145,6 @@ def get_all_keys():
 def get_all_mapping():
     if not authenticate(request):
         return jsonify({"Message": "forbidden"}), 403
-    # data = Website.query.all()
-    # websites = websites_schema.dump(data)
-    # return jsonify(websites)
     return json.dumps(mapping)
 
 @app.route('/all', methods = ["DELETE"])
@@ -182,11 +184,22 @@ def post_url():
 
 @app.route('/', methods = ["DELETE"])
 def delete():
-    return "Not Found", 404
+    if not authenticate(request):
+        return jsonify({"Message": "forbidden"}), 403
+    return jsonify({"Message": "Not Found"}), 404
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == '--db':
-        use_db = True
+    if len(sys.argv) > 1:
+        for arg in sys.argv:
+            if arg == '--db':
+                use_db = True
+            if arg.startswith("--auth="):
+                auth_url = arg[7:]
+
+    if auth_url == "":
+        print("Need to provide authentication service url.", file=sys.stderr)
+
+    print("using authentication service: " + auth_url)
 
     app.run(
         host='0.0.0.0',
