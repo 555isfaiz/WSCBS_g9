@@ -38,17 +38,16 @@ except Exception as e:
 
 @auth.route('/authenticate', methods=["POST"])
 def authenticate():
-    # auth_header = request.headers.get('Authorization')
-    # if not auth_header:
-    #     return False
-    # token = auth_header.split(' ')[1]
     token = request.json.get("JWT")
     try:
-        decoded_token = base64.b64decode(token.encode())
-        message, signature = decoded_token[:-32], decoded_token[-32:]
-        username = message.decode("utf-8").split(':')[0]
-        expected_signature = hmac.new(auth.config["SECRET_KEY"].encode(), message, hashlib.sha256).digest()
-        if hmac.compare_digest(signature, expected_signature):
+        header_b64, payload_b64, signature_b64 = token.split('.')
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64).decode())
+        username = payload["name"]
+        exp = payload["exp"]
+        message = header_b64 + '.' + payload_b64
+        expected_signature = hmac.new(auth.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256)
+        expected_signature_b64 = base64.urlsafe_b64encode(expected_signature.digest()).decode()
+        if time.time() < exp and hmac.compare_digest(signature_b64, expected_signature_b64):
             return jsonify({"Username": username}), 201
         return jsonify({"Message": "forbidden"}), 403
     except:
@@ -98,10 +97,26 @@ def login():
 
     if username in users and check_password_hash(users[username], password):
         # Generate authentication token
-        timestamp = str(int(time.time()))
-        message = username + ':' + timestamp
-        signature = hmac.new(auth.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256).digest()
-        token = base64.b64encode(message.encode() + signature).decode("utf-8")
+        header = {
+            "alg": "HS256",
+            "typ": "JWT"
+        }
+        payload = {
+            "iss": "group_9",
+            "sub": "wscbs",
+            "name": username,
+            "aud": "students",
+            "nbf": int(time.time()),
+            "iat": int(time.time()),
+            "exp": int(time.time() + 60),
+            "jti": "1234567890"
+        }
+        header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
+        payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
+        message = header_b64 + '.' + payload_b64
+        signature = hmac.new(auth.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256)
+        signature_b64 = base64.urlsafe_b64encode(signature.digest()).decode()
+        token = message + '.' + signature_b64
         return jsonify({"JWT": token}), 200
     else:
         return jsonify({"Message": "forbidden"}), 403
