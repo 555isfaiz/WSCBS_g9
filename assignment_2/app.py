@@ -1,14 +1,15 @@
-from flask import Flask, Blueprint, request, Request, jsonify
+import base64
 import json
-from atomic_int import AtomicInt
-from url_check import URLValidator
 import sys
+import time
+
 import requests
-import hashlib
+from atomic_int import AtomicInt
+from flask import Blueprint, Flask, Request, jsonify, request
+from url_check import URLValidator
 
 atomic = AtomicInt()
 app = Flask(__name__)
-# app.register_blueprint(auth_bp)
 check = URLValidator()
 mapping = {}
 auth_url = ""
@@ -16,8 +17,8 @@ auth_url = ""
 use_db = False
 
 try:
-    from flask_sqlalchemy import SQLAlchemy
     from flask_mysqldb import MySQL
+    from flask_sqlalchemy import SQLAlchemy
     db = SQLAlchemy()
     mysql = MySQL(app)
 
@@ -61,7 +62,17 @@ def retrieve_url(request:Request):
     return url, 200
 
 def authenticate(request) -> bool:
-    r = requests.post(auth_url, json={"JWT":request.headers.get('Authorization')})
+    token = request.headers.get('Authorization')
+    try:
+        payload_b64 = token.split('.')[1]
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64).decode())
+    except:
+        return False
+
+    if time.time() > payload['exp']:
+        return False
+
+    r = requests.post(auth_url, json={"JWT":token})
     return r.status_code == 201
 
 @app.before_first_request
