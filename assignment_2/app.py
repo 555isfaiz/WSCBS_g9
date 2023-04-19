@@ -62,7 +62,7 @@ def retrieve_url(request:Request):
     return url, 200
 
 def authenticate(request) -> bool:
-    token = request.headers.get('Authorization')
+    token = request.headers.get('Authorization').split(' ')[1]
     try:
         payload_b64 = token.split('.')[1]
         payload = json.loads(base64.urlsafe_b64decode(payload_b64).decode())

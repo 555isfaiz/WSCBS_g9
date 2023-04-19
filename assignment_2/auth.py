@@ -110,7 +110,7 @@ def login():
             "aud": "students",
             "nbf": int(time.time()),
             "iat": int(time.time()),
-            "exp": int(time.time() + 60),
+            "exp": int(time.time() + 300),
             "jti": "1234567890"
         }
         header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
