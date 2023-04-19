@@ -11,7 +11,7 @@ auth = Flask(__name__)
 auth.config["SECRET_KEY"] = "123456"
 users = {}
 
-# use_db = False
+use_db = False
 
 try:
     from flask_sqlalchemy import SQLAlchemy
@@ -36,6 +36,12 @@ except Exception as e:
     print(e)
     print("Run without DB.")
 
+@auth.before_first_request
+def load_from_mysql():
+    if use_db:
+        uu = User.query.all()
+        for o in uu:
+            users[o.username] = o.password
 @auth.route('/authenticate', methods=["POST"])
 def authenticate():
     token = request.json.get("JWT")
@@ -53,12 +59,6 @@ def authenticate():
     except:
         return jsonify({"Message": "forbidden"}), 403
 
-@auth.before_first_request
-def load_from_mysql():
-    uu = User.query.all()
-    for o in uu:
-        users[o.username] = o.password
-
 @auth.route('/users', methods=["POST"])
 def register():
     username = request.json.get("username")
@@ -67,9 +67,10 @@ def register():
     if username not in users:
         hash_password = generate_password_hash(password=password)
         users[username] = hash_password
-        new_user = User(username=username, password=hash_password)
-        db.session.add(new_user)
-        db.session.commit()
+        if use_db:
+            new_user = User(username=username, password=hash_password)
+            db.session.add(new_user)
+            db.session.commit()
         return jsonify({"Message": "success"}), 201
     else:
         return jsonify({"Message": "duplicate"}), 409
@@ -83,9 +84,10 @@ def change_password():
     if check_password_hash(users[username], old_password):
         hash_password = generate_password_hash(password=new_password)
         users[username] = hash_password
-        user = User.query.get(username)
-        user.password = hash_password
-        db.session.commit()
+        if use_db:
+            user = User.query.get(username)
+            user.password = hash_password
+            db.session.commit()
         return jsonify({"Message": "success"}), 200
     else:
         return jsonify({"Message": "forbidden"}), 403
@@ -122,8 +124,8 @@ def login():
         return jsonify({"Message": "forbidden"}), 403
 
 if __name__ == '__main__':
-    # if len(sys.argv) > 1 and sys.argv[1] == '--db':
-    #     use_db = True
+    if len(sys.argv) > 1 and sys.argv[1] == '--db':
+        use_db = True
 
     auth.run(
         host='0.0.0.0',
