@@ -62,14 +62,11 @@ def retrieve_url(request:Request):
     return url, 200
 
 def authenticate(request) -> bool:
-    token = request.headers.get('Authorization').split(' ')[1]
     try:
-        payload_b64 = token.split('.')[1]
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64).decode())
+        scheme, token = request.headers.get('Authorization').split(' ')
+        if scheme != "Bearer":
+            return False
     except:
-        return False
-
-    if time.time() > payload['exp']:
         return False
 
     r = requests.post(auth_url, json={"JWT":token})
@@ -77,7 +74,6 @@ def authenticate(request) -> bool:
 
 @app.before_first_request
 def load_from_mysql():
-    global gid
     if use_db:
         website = Website.query.all()
         for o in website:
@@ -176,7 +172,6 @@ def del_all_mapping():
 def post_url():
     if not authenticate(request):
         return jsonify({"Message": "forbidden"}), 403
-    global gid
     val, code = retrieve_url(request)
     if code != 200:
         return val, code
