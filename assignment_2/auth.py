@@ -8,7 +8,7 @@ import sys
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth = Flask(__name__)
-auth.config["SECRET_KEY"] = "123456"
+# auth.config["SECRET_KEY"] = "123456"
 users = {}
 
 use_db = False
@@ -51,7 +51,7 @@ def authenticate():
         username = payload["name"]
         exp = payload["exp"]
         message = header_b64 + '.' + payload_b64
-        expected_signature = hmac.new(auth.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256)
+        expected_signature = hmac.new(generate_password_hash(password=users["username"]).encode(), message.encode(), hashlib.sha256)
         expected_signature_b64 = base64.urlsafe_b64encode(expected_signature.digest()).decode()
         if time.time() < exp and hmac.compare_digest(signature_b64, expected_signature_b64):
             return jsonify({"Username": username}), 201
@@ -107,16 +107,16 @@ def login():
             "iss": "group_9",
             "sub": "wscbs",
             "name": username,
-            "aud": "students",
+            "aud": "url_shortener_application",
             "nbf": int(time.time()),
             "iat": int(time.time()),
             "exp": int(time.time() + 300),
-            "jti": "1234567890"
+            "jti": "0"
         }
         header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
         payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
         message = header_b64 + '.' + payload_b64
-        signature = hmac.new(auth.config["SECRET_KEY"].encode(), message.encode(), hashlib.sha256)
+        signature = hmac.new(generate_password_hash(password=password).encode(), message.encode(), hashlib.sha256)
         signature_b64 = base64.urlsafe_b64encode(signature.digest()).decode()
         token = message + '.' + signature_b64
         return jsonify({"JWT": token}), 200
