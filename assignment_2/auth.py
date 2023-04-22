@@ -51,7 +51,7 @@ def authenticate():
         username = payload["name"]
         exp = payload["exp"]
         message = header_b64 + '.' + payload_b64
-        expected_signature = hmac.new(generate_password_hash(password=users["username"]).encode(), message.encode(), hashlib.sha256)
+        expected_signature = hmac.new(users[username].encode(), message.encode(), hashlib.sha256)
         expected_signature_b64 = base64.urlsafe_b64encode(expected_signature.digest()).decode()
         if time.time() < exp and hmac.compare_digest(signature_b64, expected_signature_b64):
             return jsonify({"Username": username}), 201
@@ -116,7 +116,7 @@ def login():
         header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
         payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
         message = header_b64 + '.' + payload_b64
-        signature = hmac.new(generate_password_hash(password=password).encode(), message.encode(), hashlib.sha256)
+        signature = hmac.new(users[username].encode(), message.encode(), hashlib.sha256)
         signature_b64 = base64.urlsafe_b64encode(signature.digest()).decode()
         token = message + '.' + signature_b64
         return jsonify({"JWT": token}), 200
