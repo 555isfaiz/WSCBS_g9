@@ -30,11 +30,10 @@ def serve_appmicroservice(path):
         response = requests.request(request.method, url, headers=request.headers, json=request.get_json())
     else:
         response = requests.request(request.method, url, headers=request.headers, allow_redirects=False)
-    print(response)
     try:
         res = response.json()
     except:
-        res = ""
+        res = response.text
     resp = app.make_response(res)
     resp.status_code = response.status_code
     for k in response.headers:
