@@ -6,7 +6,6 @@ app = Flask(__name__)
 
 limiter = Limiter(
     app,
-    key_func=get_remote_address,
     default_limits=["100 per minute"]
 )
 
@@ -16,18 +15,31 @@ limiter = Limiter(
 @limiter.limit("10 per minute")
 def serve_authmicroservice(path):
     url = 'http://127.0.0.1:60000/' + path
-    headers = {'Content-Type': 'application/json'}
-    response = requests.request(request.method, url, headers=headers, json=request.json)
+    # headers = {'Content-Type': 'application/json'}
+    response = requests.request(request.method, url, headers=request.headers, json=request.json)
     return jsonify(response.json()), response.status_code
 
 # App Microservice
+@app.route('/app_microservice', defaults={'path': '/'}, methods=['GET', 'POST', 'PUT', 'DELETE'])
 @app.route('/app_microservice/<path:path>', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @limiter.limit("20 per minute")
 def serve_appmicroservice(path):
-    url = 'http://127.0.0.1:53333/'
-    headers = {'Content-Type': 'application/json'}
-    response = requests.request(request.method, url, headers=headers, json=request.json)
-    return jsonify(response.json()), response.status_code
+    url = 'http://127.0.0.1:53333/' + path
+    #headers = {'Content-Type': 'application/json'}
+    if request.method == "POST" or request.method == "PUT":
+        response = requests.request(request.method, url, headers=request.headers, json=request.get_json())
+    else:
+        response = requests.request(request.method, url, headers=request.headers, allow_redirects=False)
+    print(response)
+    try:
+        res = response.json()
+    except:
+        res = ""
+    resp = app.make_response(res)
+    resp.status_code = response.status_code
+    for k in response.headers:
+        resp.headers[k] = response.headers[k]
+    return resp
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=53334)

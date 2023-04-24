@@ -20,15 +20,15 @@ try:
     mysql = MySQL(auth)
 
     class User(db.Model):
-        username = db.Column(db.String(1024), primary_key=True)
-        password = db.Column(db.String(1024), nullable=False)
+        username = db.Column(db.String(256), primary_key=True)
+        password = db.Column(db.String(256), nullable=False)
 
         def __int__(self, _username, _password):
             self.username = _username
             self.password = _password
 
 
-    auth.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+    auth.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/Website"
     db.init_app(auth)
     with auth.app_context():
         db.create_all()

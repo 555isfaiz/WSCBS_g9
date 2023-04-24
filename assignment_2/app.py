@@ -31,7 +31,7 @@ try:
             self.url = url
 
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:123456@localhost/Website"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/Website"
     db.init_app(app)
     with app.app_context():
         db.create_all()
@@ -76,6 +76,7 @@ def authenticate(request) -> bool:
 def load_from_mysql():
     if use_db:
         website = Website.query.all()
+        gid = 0
         for o in website:
             mapping[o.id] = o.url
             gid = max(gid, o.id)
