@@ -105,13 +105,11 @@ def login():
         }
         payload = {
             "iss": "group_9",
-            "sub": "wscbs",
-            "name": username,
+            "sub": username,
             "aud": "url_shortener_application",
             "nbf": int(time.time()),
             "iat": int(time.time()),
             "exp": int(time.time() + 300),
-            "jti": "0"
         }
         header_b64 = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
         payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
