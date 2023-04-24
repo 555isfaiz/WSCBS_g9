@@ -66,6 +66,10 @@ def authenticate(request) -> bool:
         scheme, token = request.headers.get('Authorization').split(' ')
         if scheme != "Bearer":
             return False
+        payload_b64 = token.split('.')[1]
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64).decode())
+        if time.time() >= payload['exp']:
+            return False
     except:
         return False
 
