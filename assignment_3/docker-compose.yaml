@@ -1,25 +1,49 @@
 version: '1'
 services:
-  web:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      FLASK_APP: app.py
-      FLASK_ENV: development
-      FLASK_DEBUG: 1
-    volumes:
-      - .:/code
-    depends_on:
-      - db
-  db:
-    image: postgres:12
+  auth_db:
+    image: mysql:8.0
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: example
-      POSTGRES_DB: mydatabase
+      MYSQL_ROOT_PASSWORD: Wscbs_G9
+      MYSQL_DATABASE: auth
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - auth_mysql:/var/lib/mysql
+
+  auth:
+    build: authentication/.
+    ports:
+      - "60000:60000"
+    environment:
+      MYSQL_HOST: auth_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Wscbs_G9
+      MYSQL_DB: auth
+    depends_on:
+      auth_db:
+        condition: service_started
+
+  url_shortener_db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Wscbs_G9
+      MYSQL_DATABASE: url_shortener
+    volumes:
+      - url_shortener_mysql:/var/lib/mysql
+
+  url_shortener:
+    build: url_shortener/.
+    ports:
+      - "53333:53333"
+    environment:
+      MYSQL_HOST: url_shortener_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Wscbs_G9
+      MYSQL_DB: url_shortener
+      AUTH_IP: "auth:60000"
+    depends_on:
+      url_shortener_db:
+        condition: service_started
 volumes:
-  postgres_data:
+  url_shortener_mysql:
+  auth_mysql:
