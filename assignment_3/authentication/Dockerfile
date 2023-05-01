@@ -1,7 +1,5 @@
 FROM python:3.11.3
 
-WORKDIR /Users/pawbud/Desktop/code/WSCBS_g9/assignment_3
-
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
@@ -14,6 +12,7 @@ ENV MYSQL_USER=root
 ENV MYSQL_PASSWORD=example
 ENV MYSQL_DB=mydatabase
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+ENTRYPOINT [ "python3", "auth.py" ]
+CMD ["--db"]
 
-EXPOSE 5000
+EXPOSE 60000
