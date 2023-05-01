@@ -12,7 +12,6 @@ ENV MYSQL_USER=root
 ENV MYSQL_PASSWORD=example
 ENV MYSQL_DB=mydatabase
 
-ENTRYPOINT [ "python3", "auth.py" ]
-CMD ["--db"]
+CMD ["sh", "-c", "python3 app.py --db=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}/${MYSQL_DB}"]
 
 EXPOSE 60000

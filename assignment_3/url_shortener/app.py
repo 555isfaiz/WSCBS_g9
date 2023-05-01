@@ -13,6 +13,7 @@ app = Flask(__name__)
 check = URLValidator()
 mapping = {}
 auth_url = ""
+mysql_url = ""
 
 use_db = False
 
@@ -30,14 +31,19 @@ try:
             self.id = id
             self.url = url
 
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/Website"
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
 except Exception as e:
     print(e)
     print("Run without DB.")
+
+def db_init():
+    try:
+        app.config["SQLALCHEMY_DATABASE_URI"] = mysql_url
+        db.init_app(app)
+        with app.app_context():
+            db.create_all()
+    except Exception as e:
+        print(e)
+        print("Run without DB.")
 
 def check_id(id:str):
     if not id.isnumeric():
@@ -202,8 +208,11 @@ def delete():
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         for arg in sys.argv:
-            if arg == '--db':
+            if arg.startswith('--db='):
                 use_db = True
+                mysql_url = arg[5:]
+                print("using mysql: " + mysql_url)
+                db_init()
             if arg.startswith("--auth="):
                 auth_url = arg[7:]
 

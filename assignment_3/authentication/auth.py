@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 auth = Flask(__name__)
 auth.config["SECRET_KEY"] = "123456"
 users = {}
+mysql_url=""
 
 use_db = False
 
@@ -28,14 +29,20 @@ try:
             self.username = _username
             self.password = _password
 
-
-    auth.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root@localhost/User"
-    db.init_app(auth)
-    with auth.app_context():
-        db.create_all()
 except Exception as e:
     print(e)
     print("Run without DB.")
+
+def db_init():
+    try:
+        auth.config["SQLALCHEMY_DATABASE_URI"] = mysql_url
+        db.init_app(auth)
+        with auth.app_context():
+            db.create_all()
+    except Exception as e:
+        print(e)
+        print("Run without DB.")
+
 
 @auth.before_first_request
 def load_from_mysql():
@@ -127,8 +134,13 @@ def login():
         return jsonify({"Message": "forbidden"}), 403
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1 and sys.argv[1] == '--db':
-        use_db = True
+    if len(sys.argv) > 1:
+        for arg in sys.argv:
+            if arg.startswith('--db='):
+                use_db = True
+                mysql_url = arg[5:]
+                print("using mysql: " + mysql_url)
+                db_init()
 
     auth.run(
         host='0.0.0.0',
