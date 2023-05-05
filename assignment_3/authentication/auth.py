@@ -129,11 +129,15 @@ def login():
         return jsonify({"Message": "forbidden"}), 403
 
 if __name__ == '__main__':
-    print("using mysql: " + mysql_url)
-    db_init()
+    if len(sys.argv) > 1:
+        for arg in sys.argv:
+            if arg.startswith('--db='):
+                mysql_url = arg[5:]
+                print("using mysql: " + mysql_url)
+                db_init()
 
     auth.run(
         host='0.0.0.0',
-        port= 60000,
+        port=60000,
         debug=True
     )
