@@ -7,33 +7,28 @@ import requests
 from atomic_int import AtomicInt
 from flask import Blueprint, Flask, Request, jsonify, request
 from url_check import URLValidator
+from flask_mysqldb import MySQL
+from flask_sqlalchemy import SQLAlchemy
 
 atomic = AtomicInt()
 app = Flask(__name__)
 check = URLValidator()
-mapping = {}
+# mapping = {}
 auth_url = ""
 mysql_url = ""
 
-use_db = False
+# use_db = False
 
-try:
-    from flask_mysqldb import MySQL
-    from flask_sqlalchemy import SQLAlchemy
-    db = SQLAlchemy()
-    mysql = MySQL(app)
+db = SQLAlchemy()
+mysql = MySQL(app)
 
-    class Website(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        url = db.Column(db.String(128), nullable=False)
+class Website(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(128), nullable=False)
 
-        def __int__(self, id, url):
-            self.id = id
-            self.url = url
-
-except Exception as e:
-    print(e)
-    print("Run without DB.")
+    def __int__(self, id, url):
+        self.id = id
+        self.url = url
 
 def db_init():
     try:
@@ -50,7 +45,8 @@ def check_id(id:str):
         return jsonify({"Message": "Id should be numeric"}), 400
 
     id = int(id)
-    if id not in mapping:
+    num = Website.query.filter_by(id=id).count()
+    if num < 1:
         return jsonify({"Message": "Not a valid id"}), 404
 
     return jsonify({"Message": "OK"}), 200
@@ -84,13 +80,11 @@ def authenticate(request) -> bool:
 
 @app.before_first_request
 def load_from_mysql():
-    if use_db:
-        website = Website.query.all()
-        gid = 0
-        for o in website:
-            mapping[o.id] = o.url
-            gid = max(gid, o.id)
-        atomic.val = gid + 1
+    website = Website.query.all()
+    gid = 0
+    for o in website:
+        gid = max(gid, o.id)
+    atomic.val = gid + 1
 
 @app.route('/<id>', methods = ["GET"])
 def get_by_id(id:str):
@@ -100,7 +94,8 @@ def get_by_id(id:str):
 
     id = int(id)
     res = app.make_response("")
-    res.headers["Location"] = mapping[id]
+    cur_web = Website.query.get(id)
+    res.headers["Location"] = cur_web.url
     res.status_code = 301
     return res
 
@@ -110,7 +105,8 @@ def contains_id(id:str):
         return jsonify({"Message": "Id should be numeric"}), 400
 
     id = int(id)
-    if id not in mapping:
+    num = Website.query.filter_by(id=id).count()
+    if num < 1:
         return "", 404
     else:
         return "", 200
@@ -128,12 +124,9 @@ def put_by_id(id:str):
         return val, code
 
     id = int(id)
-    mapping[id] = val
-
-    if use_db:
-        website = Website.query.get(id)
-        website.url = val
-        db.session.commit()
+    website = Website.query.get(id)
+    website.url = val
+    db.session.commit()
     return jsonify({"Message": "Success"}), 200
 
 @app.route('/<id>', methods = ["DELETE"])
@@ -145,38 +138,37 @@ def del_by_id(id:str):
         return val, code
 
     id = int(id)
-    mapping.pop(id)
-
-    if use_db:
-        website = Website.query.get(id)
-        db.session.delete(website)
-        db.session.commit()
+    website = Website.query.get(id)
+    db.session.delete(website)
+    db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["GET"])
 def get_all_keys():
     if not authenticate(request):
         return jsonify({"Message": "forbidden"}), 403
-    return json.dumps(list(mapping.keys()))
+    website = Website.query.all()
+    return json.dumps([o.id for o in website])
 
 @app.route('/all', methods = ["GET"])
 def get_all_mapping():
     if not authenticate(request):
         return jsonify({"Message": "forbidden"}), 403
-    return json.dumps(mapping)
+    website = Website.query.all()
+    dic = {}
+    for o in website:
+        dic[o.id] = o.url
+    return json.dumps(dic)
 
 @app.route('/all', methods = ["DELETE"])
 def del_all_mapping():
     if not authenticate(request):
         return jsonify({"Message": "forbidden"}), 403
 
-    mapping.clear()
-
-    if use_db:
-        website = Website.query.all()
-        for o in website:
-            db.session.delete(o)
-        db.session.commit()
+    website = Website.query.all()
+    for o in website:
+        db.session.delete(o)
+    db.session.commit()
     return "", 204
 
 @app.route('/', methods = ["POST"])
@@ -188,12 +180,10 @@ def post_url():
         return val, code
 
     gid = atomic.get_and_inc()
-    mapping[gid] = val
 
-    if use_db:
-        new_website = Website(id=gid, url=val)
-        db.session.add(new_website)
-        db.session.commit()
+    new_website = Website(id=gid, url=val)
+    db.session.add(new_website)
+    db.session.commit()
     res = app.make_response(json.dumps({'id':gid}))
     res.headers["Content-Type"] = "application/json"
     res.status_code = 201
@@ -209,7 +199,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         for arg in sys.argv:
             if arg.startswith('--db='):
-                use_db = True
+                # use_db = True
                 mysql_url = arg[5:]
                 print("using mysql: " + mysql_url)
                 db_init()
