@@ -1,0 +1,103 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: mysql-urlshortener
+  labels:
+    app: mysql-urlshortener
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: mysql-urlshortener
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-urlshortener-pv-claim
+spec:
+  storageClassName: db-volume-urlshortener-sto
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-urlshortener
+  labels:
+    app: mysql-urlshortener
+spec:
+  containers:
+    - name: mysql-urlshortener
+      image: mysql:8.0
+      ports:
+      - containerPort: 3306
+      volumeMounts:
+      - mountPath: /var/lib/mysql
+        name: mysql-data
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: WscbsG9ur1Sh0rt3ner
+      - name: MYSQL_DATABASE
+        value: url-shortener
+  volumes:
+    - name: mysql-data
+      persistentVolumeClaim:
+        claimName: mysql-urlshortener-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: mysql-auth
+  labels:
+    app: mysql-auth
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: mysql-auth
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-auth-pv-claim
+spec:
+  storageClassName: db-volume-auth-sto
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-auth
+  labels:
+    app: mysql-auth
+spec:
+  containers:
+    - name: mysql-auth
+      image: mysql:8.0
+      ports:
+      - containerPort: 3306
+      volumeMounts:
+      - mountPath: /var/lib/mysql
+        name: mysql-data
+      env:
+      - name: MYSQL_ROOT_PASSWORD
+        value: WscbsG9aUtH
+      - name: MYSQL-DATABASE
+        value: auth
+  volumes:
+    - name: mysql-data
+      persistentVolumeClaim:
+        claimName: mysql-auth-pv-claim
