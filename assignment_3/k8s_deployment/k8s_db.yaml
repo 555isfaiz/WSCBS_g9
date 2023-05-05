@@ -3,9 +3,9 @@ kind: Service
 metadata:
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-  name: mysql-urlshortener
+  name: mysql-urlshortener-svc
   labels:
-    app: mysql-urlshortener
+    app: mysql-urlshortener-svc
 spec:
   ports:
   - port: 3306
@@ -55,9 +55,9 @@ kind: Service
 metadata:
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-  name: mysql-auth
+  name: mysql-auth-svc
   labels:
-    app: mysql-auth
+    app: mysql-auth-svc
 spec:
   ports:
   - port: 3306
@@ -95,7 +95,7 @@ spec:
       env:
       - name: MYSQL_ROOT_PASSWORD
         value: WscbsG9aUtH
-      - name: MYSQL-DATABASE
+      - name: MYSQL_DATABASE
         value: auth
   volumes:
     - name: mysql-data
