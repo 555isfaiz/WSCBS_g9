@@ -1,6 +1,0 @@
-flask==2.2.3
-flask_sqlalchemy
-flask_marshmallow
-flask_mysqldb
-flask_limiter
-requests
