@@ -1,0 +1,6 @@
+map $host $auth_ip {
+  default "$AUTH_IP";
+}
+map $host $url_shortener_ip {
+  default "$URL_SHORTENER_IP";
+}
