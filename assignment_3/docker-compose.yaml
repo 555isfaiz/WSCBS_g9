@@ -18,6 +18,7 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: Wscbs_G9
       MYSQL_DB: auth
+      SECRET_KEY: 123456
     depends_on:
       auth_db:
         condition: service_started

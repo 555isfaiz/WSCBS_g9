@@ -8,8 +8,9 @@ import sys
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth = Flask(__name__)
-auth.config["SECRET_KEY"] = "123456"
+auth.config["SECRET_KEY"] = ""
 mysql_url = ""
+secret_key = ""
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_mysqldb import MySQL
@@ -35,6 +36,8 @@ def db_init():
         print(e)
         print("Run without DB.")
 
+def secret_key_init():
+    auth.config["SECRET_KEY"] = secret_key
 
 # @auth.before_first_request
 # def load_from_mysql():
@@ -135,6 +138,9 @@ if __name__ == '__main__':
                 mysql_url = arg[5:]
                 print("using mysql: " + mysql_url)
                 db_init()
+            if arg.startswith('--secret_key='):
+                secret_key = arg[13:]
+                secret_key_init()
 
     auth.run(
         host='0.0.0.0',

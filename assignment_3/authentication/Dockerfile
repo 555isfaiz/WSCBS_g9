@@ -11,7 +11,8 @@ ENV MYSQL_HOST=db
 ENV MYSQL_USER=root
 ENV MYSQL_PASSWORD=example
 ENV MYSQL_DB=mydatabase
+ENV SECRET_KEY=123456
 
-CMD ["sh", "-c", "python3 auth.py --db=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}/${MYSQL_DB}"]
+CMD ["sh", "-c", "python3 auth.py --db=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_HOST}/${MYSQL_DB} --secret_key=${SECRET_KEY}"]
 
 EXPOSE 60000
