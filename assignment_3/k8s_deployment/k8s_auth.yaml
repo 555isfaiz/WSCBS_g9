@@ -40,4 +40,9 @@ spec:
           value: WscbsG9aUtH
         - name: MYSQL_DB
           value: auth
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: auth-secret
+              key: secretkey
 
