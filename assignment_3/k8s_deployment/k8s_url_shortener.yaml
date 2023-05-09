@@ -43,4 +43,6 @@ spec:
           value: url-shortener
         - name: AUTH_IP
           value: auth-svc
+        - name: IDGEN_IP
+          value: id-gen-svc
 
