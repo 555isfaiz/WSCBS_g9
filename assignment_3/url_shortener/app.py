@@ -38,7 +38,7 @@ def db_init():
             db.create_all()
     except Exception as e:
         print(e)
-        print("Run without DB.")
+        exit(1)
 
 def check_id(id:str):
     if not id.isnumeric():

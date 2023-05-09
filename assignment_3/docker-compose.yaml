@@ -11,6 +11,7 @@ services:
 
   auth:
     build: authentication/.
+    restart: on-failure:10
     ports:
       - "60000:60000"
     environment:
@@ -42,6 +43,7 @@ services:
 
   url_shortener:
     build: url_shortener/.
+    restart: on-failure:10
     ports:
       - "53333:53333"
     environment:

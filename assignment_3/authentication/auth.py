@@ -34,7 +34,7 @@ def db_init():
             db.create_all()
     except Exception as e:
         print(e)
-        print("Run without DB.")
+        exit(1)
 
 def secret_key_init():
     auth.config["SECRET_KEY"] = secret_key
