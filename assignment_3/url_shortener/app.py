@@ -4,20 +4,16 @@ import sys
 import time
 
 import requests
-from atomic_int import AtomicInt
-from flask import Blueprint, Flask, Request, jsonify, request
+from flask import Flask, Request, jsonify, request
 from url_check import URLValidator
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 
-atomic = AtomicInt()
 app = Flask(__name__)
 check = URLValidator()
-# mapping = {}
 auth_url = ""
+id_gen_url = ""
 mysql_url = ""
-
-# use_db = False
 
 db = SQLAlchemy()
 mysql = MySQL(app)
@@ -78,13 +74,9 @@ def authenticate(request) -> bool:
     r = requests.post(auth_url, json={"JWT":token})
     return r.status_code == 201
 
-@app.before_first_request
-def load_from_mysql():
-    website = Website.query.all()
-    gid = 0
-    for o in website:
-        gid = max(gid, o.id)
-    atomic.val = gid + 1
+def get_new_id() -> int:
+    r = requests.get(id_gen_url)
+    return int(r.json()['id'])
 
 @app.route('/<id>', methods = ["GET"])
 def get_by_id(id:str):
@@ -179,7 +171,7 @@ def post_url():
     if code != 200:
         return val, code
 
-    gid = atomic.get_and_inc()
+    gid = get_new_id()
 
     new_website = Website(id=gid, url=val)
     db.session.add(new_website)
@@ -199,17 +191,24 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         for arg in sys.argv:
             if arg.startswith('--db='):
-                # use_db = True
                 mysql_url = arg[5:]
                 print("using mysql: " + mysql_url)
                 db_init()
             if arg.startswith("--auth="):
                 auth_url = arg[7:]
+            if arg.startswith("--idgen="):
+                id_gen_url = arg[8:]
 
     if auth_url == "":
         print("Need to provide authentication service url.", file=sys.stderr)
+        exit(0)
+
+    if id_gen_url == "":
+        print("Need to provide ID generation service url.", file=sys.stderr)
+        exit(0)
 
     print("using authentication service: " + auth_url)
+    print("using ID generation service: " + id_gen_url)
 
     app.run(
         host='0.0.0.0',

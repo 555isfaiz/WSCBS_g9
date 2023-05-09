@@ -41,6 +41,20 @@ services:
     volumes:
       - url_shortener_mysql:/var/lib/mysql
 
+  id_gen:
+    build: id_generation/.
+    restart: on-failure:10
+    ports:
+      - "55555:55555"
+    environment:
+      MYSQL_HOST: url_shortener_db
+      MYSQL_USER: root
+      MYSQL_PASSWORD: Wscbs_G9
+      MYSQL_DB: url_shortener
+    depends_on:
+      url_shortener_db:
+        condition: service_started
+
   url_shortener:
     build: url_shortener/.
     restart: on-failure:10
@@ -52,8 +66,11 @@ services:
       MYSQL_PASSWORD: Wscbs_G9
       MYSQL_DB: url_shortener
       AUTH_IP: "auth:60000"
+      IDGEN_IP: "id_gen:55555"
     depends_on:
       url_shortener_db:
+        condition: service_started
+      id_gen:
         condition: service_started
 volumes:
   url_shortener_mysql:
