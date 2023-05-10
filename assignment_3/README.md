@@ -34,3 +34,25 @@ url_check.py: [URL checker from Django](https://github.com/django/django/blob/fd
 ## Kubernetes Deployment
 
 There are 2 namespaces namely -> defualt and ingress-nginx, with the following resources running in both of them 
+
+![All k8s resources](assignment_3/media/all_resources.png)
+
+### Ingress
+
+We utilize [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) github as our controller and the [metal load balancer](https://metallb.universe.tf/). 
+
+To download the `ingress-nginx` controller run the following command -
+```
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.1/deploy/static/provider/cloud/deploy.yaml
+```
+
+#### Note
+The Load Balancer exposes an external IP, but it doesn't work on bare-metal Virtual Machine (VM). The reason is that if you are runnning on bare-metal VM, have a look at (bare metal considerations)[https://kubernetes.github.io/ingress-nginx/deploy/baremetal/#over-a-nodeport-service]
+## How do I access the application
+
+1. Access the url-shortener service through the following command http://145.100.135.160:30890/urls
+
+2. access the url-shortener service through the following command http://145.100.135.160:30890/auth
+
+Example usage of the application - 
+![Command usage exame](assignment_3/media/ingress-example.png)
