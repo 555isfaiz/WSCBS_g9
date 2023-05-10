@@ -37,6 +37,10 @@ There are 2 namespaces namely -> defualt and ingress-nginx, with the following r
 
 ![All k8s resources](./media/all_resources.png)
 
+To deploy all of the aforementioned resources, go to the [k8s deployment directory](./k8s_deployment/), and run the following command for all of the yaml files in it.
+`kubectl apply -f ${FileName}`
+
+This will start all of the k8s resources.
 ### Ingress
 
 We utilize [ingress-nginx](https://kubernetes.github.io/ingress-nginx/) github as our controller and the [metal load balancer](https://metallb.universe.tf/). 
@@ -56,3 +60,9 @@ The Load Balancer exposes an external IP, but it doesn't work on bare-metal Virt
 
 Example usage of the application - 
 ![Command usage exame](./media/ingress-example.png)
+
+### Testing
+
+The code has been tested on the following OS-
+1. MacOS (Ventura) > 13.3 
+2. Linux kubeclass-160 5.10.0-21-amd64 #1 SMP Debian 5.10.162-1 (2023-01-21) x86_64
