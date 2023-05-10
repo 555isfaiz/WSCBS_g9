@@ -65,4 +65,7 @@ Example usage of the application -
 
 The code has been tested on the following OS-
 1. MacOS (Ventura) > 13.3 
-2. Linux kubeclass-160 5.10.0-21-amd64 #1 SMP Debian 5.10.162-1 (2023-01-21) x86_64
+2. Linux Debian 5.10.162-1 (2023-01-21) x86_64
+
+For Testing purposes, the VM's 160 to 162 provided for the course were used, here is the node IP for all of them
+![Testing Setup](./media/Testing_Nodes.png)
