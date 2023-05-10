@@ -35,7 +35,7 @@ url_check.py: [URL checker from Django](https://github.com/django/django/blob/fd
 
 There are 2 namespaces namely -> defualt and ingress-nginx, with the following resources running in both of them 
 
-![All k8s resources](assignment_3/media/all_resources.png)
+![All k8s resources](./media/all_resources.png)
 
 ### Ingress
 
@@ -55,4 +55,4 @@ The Load Balancer exposes an external IP, but it doesn't work on bare-metal Virt
 2. access the url-shortener service through the following command http://145.100.135.160:30890/auth
 
 Example usage of the application - 
-![Command usage exame](assignment_3/media/ingress-example.png)
+![Command usage exame](./media/ingress-example.png)
