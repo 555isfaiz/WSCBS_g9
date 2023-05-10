@@ -5,7 +5,8 @@ metadata:
   namespace: default
   annotations:
     kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   defaultBackend:
     service:
@@ -13,21 +14,20 @@ spec:
       port:
         number: 80  
   rules:
-    - host: www.example.com
-      http:
+    - http:
         paths:
           - path: /auth(/|$)(.*)
             pathType: Prefix
             backend:
               service:
                 name: auth-svc
-                port:
-                  name: http
+                port: 
+                  number: 80
           - path: /urls(/|$)(.*)
             pathType: Prefix
             backend:
               service:
                 name: url-shortener-svc
                 port:
-                  name: http
+                  number: 80
 
