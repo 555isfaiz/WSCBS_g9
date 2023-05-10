@@ -50,6 +50,19 @@ To download the `ingress-nginx` controller run the following command -
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.1/deploy/static/provider/cloud/deploy.yaml
 ```
 
+### Kubernetes secret
+
+We use kubernetes secret to hide the JWT secret key. It is packaged in kubernetes on VM and would not be accessed from docker image, ensuring not exposed to public.
+
+To create kubernetes secret, run the following command:
+```
+kubectl create secret generic <my-secret> --from-literal=secretkey=<secret_key>
+```
+The secrets can be checked through the command:
+```
+kubernetes get secrets
+```
+
 #### Note
 The Load Balancer exposes an external IP, but it doesn't work on bare-metal Virtual Machine (VM). The reason is that if you are runnning on bare-metal VM, have a look at (bare metal considerations)[https://kubernetes.github.io/ingress-nginx/deploy/baremetal/#over-a-nodeport-service]
 ## How do I access the application
