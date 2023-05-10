@@ -1,4 +1,4 @@
-# Web Services and Cloudbased Systems Assignment 2
+# Web Services and Cloudbased Systems Assignment 3
 
 ## Authors
 Boyuan Xiao, Sanskar Bajpai, Yufei Wang
@@ -30,3 +30,7 @@ python3 gateway.py
 ```
 ## Code Reference
 url_check.py: [URL checker from Django](https://github.com/django/django/blob/fdf0a367bdd72c70f91fb3aed77dabbe9dcef69f/django/core/validators.py#L69)
+
+## Kubernetes Deployment
+
+There are 2 namespaces namely -> defualt and ingress-nginx, with the following resources running in both of them 
