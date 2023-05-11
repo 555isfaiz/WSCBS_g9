@@ -4,32 +4,15 @@
 Boyuan Xiao, Sanskar Bajpai, Yufei Wang
 
 ## How to Run
-Run without DB:
+Using Docker Compose:
 ```{shell}
-pip3 install -r requirements.txt
-python3 app.py --auth="http://url.to.auth.service"
-python3 auth.py
+docker compose up
 ```
-Run with DB:
-For this application, we used mysql. The following instructions have been tested on MacOS Ventura.
-We assume that the user has brew installed. 
-## users can change the mysql information in app.py (line 32)
-```
-brew install mysql
-```
-Set your config as mentioned here
-## app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://{username}:{password}@localhost/{database}"
+To build images of each services, go to the directory and run:
 ```{shell}
-python3 app.py --auth="http://url.to.auth.service" --db
-python3 auth.py --db
+docker build <tag/name> .
 ```
-## Run with Gateway
-To try out the gateway service, run the URL shortener and authentication service first, then run the gateway.
-```{shell}
-python3 gateway.py
-```
-## Code Reference
-url_check.py: [URL checker from Django](https://github.com/django/django/blob/fdf0a367bdd72c70f91fb3aed77dabbe9dcef69f/django/core/validators.py#L69)
+Available services are in [authentication](./authentication/), [url_shortener](./url_shortener/) and [id_generation](./id_generation/) respectively.
 
 ## Kubernetes Deployment
 
@@ -82,3 +65,6 @@ The code has been tested on the following OS-
 
 For Testing purposes, the VM's 160 to 162 provided for the course were used, here is the node IP for all of them
 ![Testing Setup](./media/Testing_Nodes.png)
+
+## Code Reference
+url_check.py: [URL checker from Django](https://github.com/django/django/blob/fdf0a367bdd72c70f91fb3aed77dabbe9dcef69f/django/core/validators.py#L69)
