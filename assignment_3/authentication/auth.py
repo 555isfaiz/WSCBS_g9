@@ -5,6 +5,7 @@ import hmac
 import base64
 import time
 import sys
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
 auth = Flask(__name__)
@@ -37,7 +38,12 @@ def db_init():
         exit(1)
 
 def secret_key_init():
-    auth.config["SECRET_KEY"] = secret_key
+    try:
+        auth_secret_file = os.getenv(secret_key)
+        with open(auth_secret_file, 'r') as secret_file:
+            auth.config["SECRET_KEY"] = secret_file.read().strip()
+    except:
+        auth.config["SECRET_KEY"] = secret_key
 
 # @auth.before_first_request
 # def load_from_mysql():

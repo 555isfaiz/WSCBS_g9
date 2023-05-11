@@ -19,7 +19,9 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD: Wscbs_G9
       MYSQL_DB: auth
-      SECRET_KEY: 123456
+      SECRET_KEY: /run/secrets/auth_key
+    secrets:
+      - auth_key
     depends_on:
       auth_db:
         condition: service_started
@@ -75,3 +77,6 @@ services:
 volumes:
   url_shortener_mysql:
   auth_mysql:
+secrets:
+  auth_key:
+    file: auth_key.txt
