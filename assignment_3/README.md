@@ -2,7 +2,8 @@
 
 ## Authors
 Boyuan Xiao, Sanskar Bajpai, Yufei Wang
-
+### Errors
+To resolve some common errors, we have written the instructions for them under the [Error Resolution](#error-resolution) section.
 ## How to Run
 Using Docker Compose:
 ```{shell}
@@ -68,3 +69,11 @@ For Testing purposes, the VM's 160 to 162 provided for the course were used, her
 
 ## Code Reference
 url_check.py: [URL checker from Django](https://github.com/django/django/blob/fdf0a367bdd72c70f91fb3aed77dabbe9dcef69f/django/core/validators.py#L69)
+
+## Error Resolution
+
+### Regarding Binding error for auth key
+Example
+![binding_error](./media/bind_error.png)
+
+To resolve this error, simply create an `auth_key.tx` text file with random text inside, since this acts as the encryption key.
